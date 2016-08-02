@@ -4,7 +4,8 @@ library(datasets)
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize=300*1024^2) # Allow for file uploads of up to 300MB
   
-  myData <- reactive({
+  # File upload
+  d.Preview <- reactive({
     inFile <- input$file1
     if (is.null(inFile))
       return(NULL)
@@ -12,36 +13,23 @@ shinyServer(function(input, output, session) {
                         quote=input$quote)
     data
   })
-
-  output$contents <- renderTable({
-    myData()
-  })
   
+  # Add column names to dropdown selector
   output$selectUI <- renderUI({ 
-    selectInput("column", "Columns", colnames(myData()))
+    selectInput("column", "Display columns:", colnames(d.Preview()), multiple=TRUE)
   })
   
-  datasetInput <- reactive({
-    switch(input$dataset,
-           "rock" = rock,
-           "pressure" = pressure,
-           "cars" = cars)
+  # Table of uploaded file
+  output$contents <- renderTable({
+    print(output$selectUI)
+    head(d.Preview(), input$obs)
   })
   
-  output$caption <- renderText({
-    input$caption
+  # Print an overview of the data
+  output$overview <- renderPrint({
+    dim(d.Preview())
+    str(d.Preview())
   })
   
-  output$view <- renderTable({
-    head(datasetInput(), n = input$obs)
-  })
   
-  # The output$summary depends on the datasetInput reactive
-  # expression, so will be re-executed whenever datasetInput is
-  # invalidated
-  # (i.e. whenever the input$dataset changes)
-  output$summary <- renderPrint({
-    dataset <- datasetInput()
-    summary(dataset)
-  })
 })

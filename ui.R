@@ -9,8 +9,8 @@ shinyUI(fluidPage(
   # Sidebar with controls
   sidebarLayout( position = "left",
     sidebarPanel( 
-      tags$h4("Configure CSV file settings"),
-      checkboxInput('header', 'Header', TRUE),
+      tags$h4("Upload CSV file"),
+      checkboxInput('header', 'Headers', TRUE),
       radioButtons('sep', 'Separator',
                    c(Comma=',',
                      Semicolon=';',
@@ -21,29 +21,24 @@ shinyUI(fluidPage(
                      'Double Quote'='"',
                      'Single Quote'="'"),
                    '"'),
-      fileInput('file1', 'Upload CSV File',
+      fileInput('file1', '',
                 accept=c('text/csv', 
                          'text/comma-separated-values,text/plain', 
                          '.csv')),
       tags$hr(),
-      textInput("caption", "Caption:", "Data Summary"),
-      
-      htmlOutput("selectUI"), #selectInput('columnNames', 'Columns', ""),
-      
+      htmlOutput("selectUI"), # Drop-down menu
       numericInput("obs", "Number of observations to view:", 10)
-      
     ),
     
     
-    # Show the caption, a summary of the dataset and an HTML 
-    # table with the requested number of observations
+    # Main display body
     mainPanel(
       h3(textOutput("caption", container = span)),
       
-      #verbatimTextOutput("summary"), 
+      tableOutput('contents'),
       
-      #tableOutput("view")
-      tableOutput('contents')
+      verbatimTextOutput("overview")
+      
     )
   )
 ))
