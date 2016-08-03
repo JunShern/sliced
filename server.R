@@ -1,6 +1,7 @@
 library(shiny)
 library(datasets)
 library(DT)
+library(dplyr)
 
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize=300*1024^2) # Allow for file uploads of up to 300MB
@@ -20,12 +21,17 @@ shinyServer(function(input, output, session) {
     selectInput("column", "Select fields:", names(d.Preview()), multiple=TRUE)
   })
   
-  # Table of uploaded file
-  output$contents <- DT::renderDataTable({
-    DT::datatable(head(d.Preview(), input$obs)[, input$column, drop = FALSE], 
-                  selection="none", escape=FALSE, 
+  ## EXPLORE
+  
+  # Draggable table
+  output$sliceTable <- DT::renderDataTable({
+    d.slice <- group_by(d.Preview(), walk_ins)
+    d.slice <- summarise(d.slice, freq=n())
+    DT::datatable(d.slice, selection="none", escape=FALSE, 
                   options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
   })
+  
+  ## QUICK VIEW 
   
   # Print overviews of the data
   output$structure <- renderPrint({
@@ -33,6 +39,12 @@ shinyServer(function(input, output, session) {
   })
   output$summary <- renderPrint({
     summary(d.Preview())
+  })
+  # Table of uploaded file
+  output$contents <- DT::renderDataTable({
+    DT::datatable(head(d.Preview(), input$obs)[, input$column, drop = FALSE], 
+                  selection="none", escape=FALSE, 
+                  options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
   })
   
 })

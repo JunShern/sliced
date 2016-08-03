@@ -1,22 +1,24 @@
 library(shiny)
-library(shinythemes)
 
 # Define UI for dataset viewer application
-shinyUI(fluidPage(theme = shinytheme("flatly"),
-  
-  # Application title
-  titlePanel("Sliced"),
-  
+shinyUI(fluidPage(theme = shinytheme("flatly"), #theme = "nightly.css"
   # Sidebar with controls
-  sidebarLayout( position = "right",
-    sidebarPanel( 
-      tags$h4("Upload CSV file"),
-      checkboxInput('header', 'Headers', TRUE),
-      radioButtons('sep', 'Separator',
-                   c(Comma=',',
-                     Semicolon=';',
-                     Tab='\t'),
-                   ','),
+  fluidRow( 
+    column(2,
+      tags$h1("Sliced")
+    ),
+    column(2,
+      wellPanel(
+        tags$h4("Upload CSV file"),
+        checkboxInput('header', 'Headers', TRUE),
+        radioButtons('sep', 'Separator',
+                     c(Comma=',',
+                       Semicolon=';',
+                       Tab='\t'),
+                     ',')
+      )
+    ),
+    column(2,
       radioButtons('quote', 'Quote',
                    c(None='',
                      'Double Quote'='"',
@@ -25,22 +27,33 @@ shinyUI(fluidPage(theme = shinytheme("flatly"),
       fileInput('file1', '',
                 accept=c('text/csv', 
                          'text/comma-separated-values,text/plain', 
-                         '.csv')),
-      tags$hr(),
-      htmlOutput("selectUI"), # Drop-down menu
-      numericInput("obs", "Number of observations to view:", 10)
+                         '.csv'))
     ),
-    
-    
-    # Main display body
-    mainPanel(
-      tabsetPanel(
-        tabPanel("Explore", DT::dataTableOutput('contents') ), 
-        tabPanel("Overview", (
-          verbatimTextOutput("structure") ), 
-          verbatimTextOutput("summary")
+    column(6,
+      htmlOutput("selectUI"), # Drop-down menu
+      numericInput("obs", "Number of observations to show:", 10)
+    ),
+    tags$hr()
+  ),
+  
+  # Main display body
+  fluidRow(
+    tabsetPanel(
+      tabPanel("Explore",
+        absolutePanel(
+          bottom = 20, left = 20, #width = 300,
+          draggable = TRUE,
+          DT::dataTableOutput('sliceTable'), 
+          style = "opacity: 0.92"
         )
+      ),
+      tabPanel("Quick View", 
+        verbatimTextOutput("structure"), 
+        verbatimTextOutput("summary"),
+        DT::dataTableOutput('contents') 
       )
     )
+    
   )
+  
 ))
