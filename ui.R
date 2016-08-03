@@ -35,7 +35,7 @@ shinyUI(fluidPage(
     mainPanel(
       h3(textOutput("caption", container = span)),
       
-      tableOutput('contents'),
+      DT::dataTableOutput('contents'),
       
       verbatimTextOutput("overview")
       

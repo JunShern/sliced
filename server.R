@@ -1,5 +1,6 @@
 library(shiny)
 library(datasets)
+library(DT)
 
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize=300*1024^2) # Allow for file uploads of up to 300MB
@@ -16,13 +17,14 @@ shinyServer(function(input, output, session) {
   
   # Add column names to dropdown selector
   output$selectUI <- renderUI({ 
-    selectInput("column", "Display columns:", colnames(d.Preview()), multiple=TRUE)
+    selectInput("column", "Display columns:", names(d.Preview()), multiple=TRUE)
   })
   
   # Table of uploaded file
-  output$contents <- renderTable({
-    print(output$selectUI)
-    head(d.Preview(), input$obs)
+  output$contents <- DT::renderDataTable({
+    DT::datatable(head(d.Preview(), input$obs)[, input$column, drop = FALSE], 
+                  selection="none", escape=FALSE, 
+                  options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE))
   })
   
   # Print an overview of the data
@@ -30,6 +32,5 @@ shinyServer(function(input, output, session) {
     dim(d.Preview())
     str(d.Preview())
   })
-  
   
 })
