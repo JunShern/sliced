@@ -1,13 +1,14 @@
 library(shiny)
+library(shinythemes)
 
 # Define UI for dataset viewer application
-shinyUI(fluidPage(
+shinyUI(fluidPage(theme = shinytheme("flatly"),
   
   # Application title
   titlePanel("Sliced"),
   
   # Sidebar with controls
-  sidebarLayout( position = "left",
+  sidebarLayout( position = "right",
     sidebarPanel( 
       tags$h4("Upload CSV file"),
       checkboxInput('header', 'Headers', TRUE),
@@ -33,12 +34,13 @@ shinyUI(fluidPage(
     
     # Main display body
     mainPanel(
-      h3(textOutput("caption", container = span)),
-      
-      DT::dataTableOutput('contents'),
-      
-      verbatimTextOutput("overview")
-      
+      tabsetPanel(
+        tabPanel("Explore", DT::dataTableOutput('contents') ), 
+        tabPanel("Overview", (
+          verbatimTextOutput("structure") ), 
+          verbatimTextOutput("summary")
+        )
+      )
     )
   )
 ))

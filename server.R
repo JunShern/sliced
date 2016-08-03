@@ -17,20 +17,22 @@ shinyServer(function(input, output, session) {
   
   # Add column names to dropdown selector
   output$selectUI <- renderUI({ 
-    selectInput("column", "Display columns:", names(d.Preview()), multiple=TRUE)
+    selectInput("column", "Select fields:", names(d.Preview()), multiple=TRUE)
   })
   
   # Table of uploaded file
   output$contents <- DT::renderDataTable({
     DT::datatable(head(d.Preview(), input$obs)[, input$column, drop = FALSE], 
                   selection="none", escape=FALSE, 
-                  options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE))
+                  options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
   })
   
-  # Print an overview of the data
-  output$overview <- renderPrint({
-    dim(d.Preview())
+  # Print overviews of the data
+  output$structure <- renderPrint({
     str(d.Preview())
+  })
+  output$summary <- renderPrint({
+    summary(d.Preview())
   })
   
 })
