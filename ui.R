@@ -2,7 +2,7 @@ library(shiny)
 library(shinythemes)
 
 # Define UI for dataset viewer application
-shinyUI(fluidPage(theme = shinytheme("flatly"), #theme = "nightly.css"
+shinyUI(fluidPage(theme = "bootstrap.css",
   # Sidebar with controls
   fluidRow(
     column(2, align="center",

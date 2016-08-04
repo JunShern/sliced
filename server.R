@@ -33,6 +33,7 @@ shinyServer(function(input, output, session) {
   output$contents <- DT::renderDataTable({
     DT::datatable(head(d.Preview(), input$obs)[, input$column, drop = FALSE], 
                   selection="none", escape=FALSE, 
+                  style = 'bootstrap', class = 'table-condensed table-bordered', 
                   options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
   })
   
@@ -46,6 +47,7 @@ shinyServer(function(input, output, session) {
   })
   output$sliceTable <- DT::renderDataTable({
     DT::datatable(d.slice(), escape=FALSE, 
+                  style = 'bootstrap', class = 'table-condensed table-bordered', 
                   options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
   })
   output$sliceSelect <- renderUI({
@@ -70,6 +72,7 @@ shinyServer(function(input, output, session) {
   })
   output$sliceTable2 <- DT::renderDataTable({
     DT::datatable(d.slice2(), selection="none", escape=FALSE, 
+                  style = 'bootstrap', class = 'table-condensed table-bordered', 
                   options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
   })
   output$sliceSelect2 <- renderUI({
@@ -80,8 +83,12 @@ shinyServer(function(input, output, session) {
   output$debug <- renderPrint({
     field <- input$selectSlice
     values <- unlist( d.slice()[as.numeric(selectedRows()), field] )
+    # Filter data
     expr <- lazyeval::interp(quote(x %in% y), x = as.name(field), y = values)
     data <- filter_(d.Preview(), expr)
+    # Summarize data
+    data <- group_by_(data, input$selectSlice2) # Rate.Plan
+    data <- summarise(data, freq=n())
     data
   })
   
