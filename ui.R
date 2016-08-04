@@ -9,19 +9,19 @@ shinyUI(fluidPage(theme = shinytheme("flatly"), #theme = "nightly.css"
       #img(src='sliced_bread.jpg', width=170)
     ),
     column(10,
-           fluidRow(
-             tags$h4("Upload CSV file")
-           ),
-           fluidRow(
-             column(4,
-                    checkboxInput('header', 'Headers', TRUE),
-                    radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'),',')  
-             ),
-             column(8,
-                    radioButtons('quote', 'Quote', c(None='','Double Quote'='"','Single Quote'="'"),'"'),
-                    fileInput('file1', '', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'))
-             )
-           )
+      fluidRow(
+        column(4,
+          tags$h4("Upload CSV file"),
+          checkboxInput('header', 'Headers', TRUE),
+          fileInput('file1', '', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'))
+        ),
+        column(4,
+          radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'),',')  
+        ),
+        column(4,
+          radioButtons('quote', 'Quote', c(None='','Double Quote'='"','Single Quote'="'"),'"')
+        )
+      )
     )
   ),
   
@@ -30,11 +30,18 @@ shinyUI(fluidPage(theme = shinytheme("flatly"), #theme = "nightly.css"
     tabsetPanel(
       tabPanel("Explore",
         absolutePanel(
-          top = 300, left = 20, #width = 300,
+          top = 220, left = 20, #width = 300,
           draggable = TRUE,
           style = "opacity: 0.92",
           htmlOutput("sliceSelect"), # Drop-down menu
           DT::dataTableOutput('sliceTable')
+        ),
+        absolutePanel(
+          top = 220, right = 20, #width = 300,
+          draggable = TRUE,
+          style = "opacity: 0.92",
+          #htmlOutput("sliceSelect2"), # Drop-down menu
+          DT::dataTableOutput('sliceTable2')
         )
       ),
       tabPanel("Summary",

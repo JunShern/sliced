@@ -45,11 +45,25 @@ shinyServer(function(input, output, session) {
     data
   })
   output$sliceTable <- DT::renderDataTable({
-    DT::datatable(d.slice(), selection="none", escape=FALSE, 
+    DT::datatable(d.slice(), escape=FALSE, 
                   options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
   })
   output$sliceSelect <- renderUI({
     selectInput("selectSlice", "Slice by:", names(d.Preview()), multiple=FALSE)
+  })
+  
+  # Draggable table2
+  selectedRows <- reactive({
+    rows = input$sliceTable_rows_selected
+    rows
+  })
+  d.slice2 <- reactive({
+    data <- d.slice()[as.numeric(selectedRows()),]
+    data
+  })
+  output$sliceTable2 <- DT::renderDataTable({
+    DT::datatable(d.slice2(), selection="none", escape=FALSE, 
+                  options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
   })
   
 })
