@@ -1,5 +1,4 @@
 library(shiny)
-library(datasets)
 library(DT)
 library(dplyr)
 
@@ -21,16 +20,6 @@ shinyServer(function(input, output, session) {
     selectInput("column", "Select fields:", names(d.Preview()), multiple=TRUE)
   })
   
-  ## EXPLORE
-  
-  # Draggable table
-  output$sliceTable <- DT::renderDataTable({
-    d.slice <- group_by(d.Preview(), walk_ins)
-    d.slice <- summarise(d.slice, freq=n())
-    DT::datatable(d.slice, selection="none", escape=FALSE, 
-                  options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
-  })
-  
   ## QUICK VIEW 
   
   # Print overviews of the data
@@ -45,6 +34,22 @@ shinyServer(function(input, output, session) {
     DT::datatable(head(d.Preview(), input$obs)[, input$column, drop = FALSE], 
                   selection="none", escape=FALSE, 
                   options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
+  })
+  
+  ## EXPLORE
+  
+  # Draggable table
+  d.slice <- reactive({
+    data <- group_by_(d.Preview(), input$selectSlice) # Rate.Plan
+    data <- summarise(data, freq=n())
+    data
+  })
+  output$sliceTable <- DT::renderDataTable({
+    DT::datatable(d.slice(), selection="none", escape=FALSE, 
+                  options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
+  })
+  output$sliceSelect <- renderUI({
+    selectInput("selectSlice", "Slice by:", names(d.Preview()), multiple=FALSE)
   })
   
 })
