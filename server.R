@@ -1,6 +1,7 @@
 library(shiny)
 library(DT)
 library(dplyr)
+library(lazyeval)
 
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize=300*1024^2) # Allow for file uploads of up to 300MB
@@ -10,8 +11,7 @@ shinyServer(function(input, output, session) {
     inFile <- input$file1
     if (is.null(inFile))
       return(NULL)
-    data <- read.csv(inFile$datapath, header=input$header, sep=input$sep, 
-                        quote=input$quote)
+    data <- read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
     data
   })
   
@@ -58,12 +58,31 @@ shinyServer(function(input, output, session) {
     rows
   })
   d.slice2 <- reactive({
-    data <- d.slice()[as.numeric(selectedRows()),]
+    field <- input$selectSlice
+    values <- unlist( d.slice()[as.numeric(selectedRows()), field] )
+    # Filter data
+    expr <- lazyeval::interp(quote(x %in% y), x = as.name(field), y = values)
+    data <- filter_(d.Preview(), expr)
+    # Summarize data
+    data <- group_by_(data, input$selectSlice2) # Rate.Plan
+    data <- summarise(data, freq=n())
     data
   })
   output$sliceTable2 <- DT::renderDataTable({
     DT::datatable(d.slice2(), selection="none", escape=FALSE, 
                   options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
+  })
+  output$sliceSelect2 <- renderUI({
+    selectInput("selectSlice2", "Slice by:", names(d.Preview()), multiple=FALSE)
+  })
+  
+  # DEBUG
+  output$debug <- renderPrint({
+    field <- input$selectSlice
+    values <- unlist( d.slice()[as.numeric(selectedRows()), field] )
+    expr <- lazyeval::interp(quote(x %in% y), x = as.name(field), y = values)
+    data <- filter_(d.Preview(), expr)
+    data
   })
   
 })

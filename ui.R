@@ -1,4 +1,5 @@
 library(shiny)
+library(shinythemes)
 
 # Define UI for dataset viewer application
 shinyUI(fluidPage(theme = shinytheme("flatly"), #theme = "nightly.css"
@@ -40,9 +41,10 @@ shinyUI(fluidPage(theme = shinytheme("flatly"), #theme = "nightly.css"
           top = 220, right = 20, #width = 300,
           draggable = TRUE,
           style = "opacity: 0.92",
-          #htmlOutput("sliceSelect2"), # Drop-down menu
+          htmlOutput("sliceSelect2"), # Drop-down menu
           DT::dataTableOutput('sliceTable2')
         )
+        #verbatimTextOutput('debug')
       ),
       tabPanel("Summary",
                verbatimTextOutput("structure"), 
