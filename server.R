@@ -3,9 +3,23 @@ library(DT)
 library(dplyr)
 library(lazyeval)
 
+## jQuery for table-colouring
+script <- "$('tbody tr td:nth-child(5)').each(function() {
+
+              var cellValue = $(this).text();
+
+              if (cellValue > 50) {
+                $(this).css('background-color', '#0c0');
+              }
+              else if (cellValue <= 50) {
+                $(this).css('background-color', '#f00');
+              }
+            })"
+
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize=300*1024^2) # Allow for file uploads of up to 300MB
-  
+  tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")) # Import jQuery for the Draggable
+
   # File upload
   d.Preview <- reactive({
     inFile <- input$file1
@@ -38,12 +52,11 @@ shinyServer(function(input, output, session) {
   })
   
   ## EXPLORE
-  
+  sliceTables <- list()
+
   # Draggable table
   d.slice <- reactive({
-    data <- group_by_(d.Preview(), input$selectSlice) # Rate.Plan
-    data <- summarise(data, freq=n())
-    data
+    sliceData(d.Preview(), input$selectSlice)
   })
   output$sliceTable <- DT::renderDataTable({
     DT::datatable(d.slice(), escape=FALSE, 
@@ -55,20 +68,9 @@ shinyServer(function(input, output, session) {
   })
   
   # Draggable table2
-  selectedRows <- reactive({
-    rows = input$sliceTable_rows_selected
-    rows
-  })
   d.slice2 <- reactive({
-    field <- input$selectSlice
-    values <- unlist( d.slice()[as.numeric(selectedRows()), field] )
-    # Filter data
-    expr <- lazyeval::interp(quote(x %in% y), x = as.name(field), y = values)
-    data <- filter_(d.Preview(), expr)
-    # Summarize data
-    data <- group_by_(data, input$selectSlice2) # Rate.Plan
-    data <- summarise(data, freq=n())
-    data
+    filteredData <- filterData(d.Preview(), d.slice(), input$sliceTable_rows_selected, input$selectSlice)
+    sliceData(filteredData, input$selectSlice2)
   })
   output$sliceTable2 <- DT::renderDataTable({
     DT::datatable(d.slice2(), selection="none", escape=FALSE, 
@@ -92,4 +94,24 @@ shinyServer(function(input, output, session) {
     data
   })
   
+  # Cell-colouring
+  #session$onFlushed(function() {
+  #  session$sendCustomMessage(type='jsCode', list(value = script))
+  #})
 })
+
+filterData <- function(parentData, parentSlice, selectedRows, parentField) {
+  retainValues <- unlist(parentSlice[as.numeric(selectedRows), parentField])
+  # Filter data to retain only rows containing (retainValues)
+  expr <- lazyeval::interp(quote(x %in% y), x = as.name(parentField), y = retainValues)
+  outputData <- filter_(parentData, expr)
+  return(outputData)
+}
+
+sliceData <- function(filteredData, sliceField) {
+  # Slice (summarize) data
+  outputData <- group_by_(filteredData, sliceField) # Rate.Plan
+  outputData <- summarise(outputData, Count=n())
+  outputData <- mutate(outputData, Proportion=paste0(format(100*Count/sum(Count), nsmall=2), "%") )
+  return(outputData)
+}

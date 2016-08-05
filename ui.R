@@ -1,12 +1,15 @@
 library(shiny)
-library(shinythemes)
+library(shinyjs)
 
 # Define UI for dataset viewer application
-shinyUI(fluidPage(theme = "bootstrap.css",
-  # Sidebar with controls
+shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
+  #tags$head(tags$script(HTML('Shiny.addCustomMessageHandler("jsCode", function(message) { eval(message.value); });'))),
+  #tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")), # Import jQuery for the Draggable
+
+  # Header with controls
   fluidRow(
-    column(2, align="center",
-      tags$h1("Sliced")
+    column(2, #align="center",
+      tags$h1("SLICED")
       #img(src='sliced_bread.jpg', width=170)
     ),
     column(10,
@@ -38,7 +41,7 @@ shinyUI(fluidPage(theme = "bootstrap.css",
           DT::dataTableOutput('sliceTable')
         ),
         absolutePanel(
-          top = 220, right = 20, #width = 300,
+          top = 220, left = 400, #width = 300,
           draggable = TRUE,
           style = "opacity: 0.92",
           htmlOutput("sliceSelect2"), # Drop-down menu
