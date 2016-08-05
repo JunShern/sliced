@@ -19,6 +19,7 @@ script <- "$('tbody tr td:nth-child(5)').each(function() {
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize=300*1024^2) # Allow for file uploads of up to 300MB
   tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")) # Import jQuery for the Draggable
+  tags$head(tags$script(src="https://use.fontawesome.com/15c2608d79.js")) # Import FontAwesome for icons
 
   # File upload
   d.Preview <- reactive({
@@ -66,6 +67,7 @@ shinyServer(function(input, output, session) {
   output$sliceSelect <- renderUI({
     selectInput("selectSlice", "Slice by:", names(d.Preview()), multiple=FALSE)
   })
+
   
   # Draggable table2
   d.slice2 <- reactive({
@@ -80,18 +82,13 @@ shinyServer(function(input, output, session) {
   output$sliceSelect2 <- renderUI({
     selectInput("selectSlice2", "Slice by:", names(d.Preview()), multiple=FALSE)
   })
+  ntext <- eventReactive(input$newTableButton, {
+    "Hello Button!"
+  })
   
   # DEBUG
   output$debug <- renderPrint({
-    field <- input$selectSlice
-    values <- unlist( d.slice()[as.numeric(selectedRows()), field] )
-    # Filter data
-    expr <- lazyeval::interp(quote(x %in% y), x = as.name(field), y = values)
-    data <- filter_(d.Preview(), expr)
-    # Summarize data
-    data <- group_by_(data, input$selectSlice2) # Rate.Plan
-    data <- summarise(data, freq=n())
-    data
+    print("Hello World!")
   })
   
   # Cell-colouring

@@ -37,8 +37,11 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
           top = 220, left = 20, #width = 300,
           draggable = TRUE,
           style = "opacity: 0.92",
-          htmlOutput("sliceSelect"), # Drop-down menu
-          DT::dataTableOutput('sliceTable')
+          absolutePanel(right=-60, actionButton("newTableButton", "", icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")), 
+          wellPanel(
+            htmlOutput("sliceSelect"), # Drop-down menu
+            DT::dataTableOutput('sliceTable')
+          )
         ),
         absolutePanel(
           top = 220, left = 400, #width = 300,
