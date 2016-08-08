@@ -33,24 +33,25 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
   fluidRow(
     tabsetPanel(
       tabPanel("Explore",
-        absolutePanel(
-          top = 220, left = 20, #width = 300,
-          draggable = TRUE,
-          style = "opacity: 0.92",
-          absolutePanel(right=-60, actionButton("newTableButton", "", icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")), 
-          wellPanel(
-            htmlOutput("sliceSelect"), # Drop-down menu
-            DT::dataTableOutput('sliceTable')
-          )
-        ),
-        absolutePanel(
-          top = 220, left = 400, #width = 300,
-          draggable = TRUE,
-          style = "opacity: 0.92",
-          htmlOutput("sliceSelect2"), # Drop-down menu
-          DT::dataTableOutput('sliceTable2')
-        )
-        #verbatimTextOutput('debug')
+        # absolutePanel(
+        #   top = 220, left = 20, #width = 300,
+        #   draggable = TRUE,
+        #   style = "opacity: 0.92",
+        #   absolutePanel(right=-60, actionButton("createTable", "", icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")), 
+        #   wellPanel(
+        #     htmlOutput("sliceSelect"), # Drop-down menu
+        #     DT::dataTableOutput('sliceTable')
+        #   )
+        # ),
+        # absolutePanel(
+        #   top = 220, left = 400, #width = 300,
+        #   draggable = TRUE,
+        #   style = "opacity: 0.92",
+        #   htmlOutput("sliceSelect2"), # Drop-down menu
+        #   DT::dataTableOutput('sliceTable2')
+        # ),
+        uiOutput("plots"),
+        verbatimTextOutput('debug')
       ),
       tabPanel("Summary",
                verbatimTextOutput("structure"), 

@@ -53,11 +53,56 @@ shinyServer(function(input, output, session) {
   })
   
   ## EXPLORE
-  sliceTables <- list()
+
+  # Insert the right number of plot output objects into the web page
+  output$plots <- renderUI({
+    plot_output_list <- lapply(1:v$counter, function(i) {
+      absolutePanel(
+        top = 220, left = 20, #width = 300,
+        draggable = TRUE,
+        style = "opacity: 0.92",
+        absolutePanel(right=-60, actionButton(paste0("createTable",i), "", icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")), 
+        wellPanel(
+          #htmlOutput("sliceSelect"), # Drop-down menu
+          selectInput(paste0("selectSlice",i), "Slice by:", names(d.Preview()), multiple=FALSE),
+          DT::dataTableOutput(paste0('sliceTable',i))
+        )
+      )
+    })
+    do.call(tagList, plot_output_list) # Convert the list to a tagList - this is necessary for the list of items to display properly.
+  })
+
+  # Handle button inputs
+  v <- reactiveValues(counter = 1L)
+  observe({
+    for (i in 1:v$counter) {
+      observeEvent(input[[paste0("createTable",i)]], v$counter <- v$counter + 1L)  
+    }
+  })
+  output$debug <- renderPrint({ print(v$counter) })
+
+  # Call renderPlot for each one. Plots are only actually generated when they
+  # are visible on the web page.
+  #for (i in 1:max_plots) {
+    # Need local so that each item gets its own number. Without it, the value
+    # of i in the renderPlot() will be the same across all instances, because
+    # of when the expression is evaluated.
+  #  local({
+  #    my_i <- i
+  #    plotname <- paste("plot", my_i, sep="")
+  #    plottitle <- paste("plottitle", my_i, sep="")
+  #    tablename <- paste("tablename", my_i, sep="")
+
+  #    output[[plotname]] <- renderPlot({plot(1:my_i, 1:my_i, xlim = c(1, max_plots), ylim = c(1, max_plots), main = paste("1:", my_i, ".  n is ", input$n, sep = ""))})
+  #    output[[plottitle]] <- renderText({paste("1:", my_i, ".  n is ", input$n, sep = "")})
+  #    output[[tablename]] <- renderDataTable({table(x = 1:my_i, y = 1:my_i)})
+  #  })
+  #}
 
   # Draggable table
   d.slice <- reactive({
-    sliceData(d.Preview(), input$selectSlice)
+    filteredData <- filterData(d.Preview(), NULL, NULL, NULL) # First table no need to filter
+    sliceData(filteredData, input$selectSlice)
   })
   output$sliceTable <- DT::renderDataTable({
     DT::datatable(d.slice(), escape=FALSE, 
@@ -67,7 +112,6 @@ shinyServer(function(input, output, session) {
   output$sliceSelect <- renderUI({
     selectInput("selectSlice", "Slice by:", names(d.Preview()), multiple=FALSE)
   })
-
   
   # Draggable table2
   d.slice2 <- reactive({
@@ -82,14 +126,6 @@ shinyServer(function(input, output, session) {
   output$sliceSelect2 <- renderUI({
     selectInput("selectSlice2", "Slice by:", names(d.Preview()), multiple=FALSE)
   })
-  ntext <- eventReactive(input$newTableButton, {
-    "Hello Button!"
-  })
-  
-  # DEBUG
-  output$debug <- renderPrint({
-    print("Hello World!")
-  })
   
   # Cell-colouring
   #session$onFlushed(function() {
@@ -98,6 +134,7 @@ shinyServer(function(input, output, session) {
 })
 
 filterData <- function(parentData, parentSlice, selectedRows, parentField) {
+  if (parentSlice == NULL) return(parentData)
   retainValues <- unlist(parentSlice[as.numeric(selectedRows), parentField])
   # Filter data to retain only rows containing (retainValues)
   expr <- lazyeval::interp(quote(x %in% y), x = as.name(parentField), y = retainValues)
