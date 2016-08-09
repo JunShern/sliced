@@ -50,7 +50,7 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
         #   htmlOutput("sliceSelect2"), # Drop-down menu
         #   DT::dataTableOutput('sliceTable2')
         # ),
-        uiOutput("plots"),
+        uiOutput("allSliceBoxes"),
         verbatimTextOutput('debug')
       ),
       tabPanel("Summary",
