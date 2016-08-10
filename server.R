@@ -10,18 +10,43 @@ shinyServer(function(input, output, session) {
   newNode <- function(id, parentId) {
     node <- list(
       parent = parentId, 
-      children = list(),
-      uiObject = createButton(id, parentId) #createSliceBox(id)
+      children = list()
     )
+    createButton(id, parentId) # Create the UI for this node
     return(node)
   }
 
   createButton <- function(id, parentId) {
+    # Div names
+    containerDivID <- paste0('container',id,'_div')
+    nodeDivID <- paste0('node',id,'_div')
+    childrenDivID <- paste0('children',id,'_div')
+
+    if (parentId == 0) { # Root node case
+      parentDivID <- 'allSliceBoxes'
+    } else {
+      parentDivID <- paste0('children',parentId,'_div')
+    }
+
+    # Input names
     buttonID <- paste0("sliceBoxButton", id)
-    # Return the UI element for the button
-    return(
-      actionButton(buttonID, paste0("I am ", buttonID, ", child of ", parentId), 
-        icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")
+
+    # Insert the UI element for the node under the parent's children_div
+    insertUI(
+      selector = paste0('#',parentDivID), 
+      where = 'beforeEnd',
+      ui = tagList(
+        tags$div(id=containerDivID, style='float:left',
+          tags$div(id=nodeDivID, style='float:left',
+            actionButton(buttonID, paste0("I am ", buttonID, ", child of ", parentId), 
+              icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")
+          ),
+          tags$div(id=childrenDivID, style='float:left') # Container for children, starts empty
+        ),
+        tags$br('')
+      )
+      
+
     )
   }
 
@@ -65,7 +90,7 @@ shinyServer(function(input, output, session) {
   ### CODE STARTS HERE
 
   options(shiny.maxRequestSize=300*1024^2) # Allow for file uploads of up to 300MB
-  tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")) # Import jQuery for the Draggable
+  tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")) # Import jQuery 
   tags$head(tags$script(src="https://use.fontawesome.com/15c2608d79.js")) # Import FontAwesome for icons
 
   # File upload
@@ -120,56 +145,21 @@ shinyServer(function(input, output, session) {
     # Create new button handler
     observeEvent(input[[buttonID]], {
       v$counter <- v$counter + 1L
-      print(paste0("Pressed ", buttonID))
+      #print(paste0("Pressed ", buttonID))
 
       # Append new child to list of children
       numChildren <- length(sliceBox.tree$tree[[id]]$children)
       sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
 
       sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id)
-      print(paste0("Appending node to tree at index ", v$counter))
+      #print(paste0("Appending node to tree at index ", v$counter))
       #print(node)
-      print(sliceBox.tree$tree)
+      #print(sliceBox.tree$tree)
     })
   })
-
-  # Construct list of buttons
-  # buttonList <- reactive({
-  #   lapply(1:v$counter, function(i) {
-  #     return(input[[paste0("sliceBoxButton", i)]])
-  #   })
-  # })
-  # observeEvent(buttonList(), {
-  #   buttonID <- NULL
-  #   # Figure out which button was pressed
-  #   for (i in 1:v$counter) {
-  #     if (input[[paste0("sliceBoxButton",1)]]) {
-  #       buttonID <- paste0("sliceBoxButton", i)
-  #     }
-  #   }
-  #   output$debug <- renderPrint({buttonID})
-  #   # if (buttonID != NULL) {
-  #   #   v$counter <- v$counter + 1L
-  #   #   print(paste0("Pressed ", buttonID))
-
-  #   #   # Append new child to list of children
-  #   #   numChildren <- length(sliceBox.tree$tree[[id]]$children)
-  #   #   sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
-
-  #   #   sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id)
-  #   #   print(paste0("Appending node to tree at index ", v$counter))
-  #   #   #print(node)
-  #   #   print(sliceBox.tree$tree)
-  #   # }
-  # })
 
   # renderUI needs a list of uiObjects, so we just extract the uiObjects from every node of the tree
-  output$allSliceBoxes <- renderUI({
-    table_output_list <- lapply(1:v$counter, function(i) {
-      return(getElement(sliceBox.tree$tree[[i]], 'uiObject'))
-    })
-    do.call(tagList, table_output_list) # Convert the list to a tagList - this is necessary for the list of items to display properly.
-  })
+  #output$allSliceBoxes <- renderUI({})
 
   # # Table contents
   # d.slice <- reactive({
