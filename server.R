@@ -17,25 +17,11 @@ shinyServer(function(input, output, session) {
   }
 
   createButton <- function(id, parentId) {
-    print(paste0("Creating button ", id))
     buttonID <- paste0("sliceBoxButton", id)
-    # # IMPORTANT! Event handler for the button, only runs on button press, not during createButton
-    # observeEvent(input[[buttonID]], {
-    #   v$counter <- v$counter + 1L
-    #   print(paste0("Pressed ", buttonID, ", parent is ", parentId))
-
-    #   # Append new child to list of children
-    #   numChildren <- length(sliceBox.tree$tree[[id]]$children)
-    #   #sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
-
-    #   sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id)
-    #   print(paste0("Appending node to tree at index ", v$counter))
-    #   print(node)
-    # })
     # Return the UI element for the button
     return(
-      absolutePanel(left=200*id, top=50*id, actionButton(buttonID, paste0("I am ", buttonID, ", child of ", parentId), 
-        icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")) 
+      actionButton(buttonID, paste0("I am ", buttonID, ", child of ", parentId), 
+        icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")
     )
   }
 
@@ -118,38 +104,33 @@ shinyServer(function(input, output, session) {
   #sliceBox.tree <- list(rootNode) # We'll store our nodes as a 1D list, so parent and child ID's are recorded as their indices in the list
   sliceBox.tree <- reactiveValues(tree=list(rootNode))
 
-  output$debug <- renderPrint({
-    print(paste0("Button presses: ", v$counter))
-    print("FULL TREE")
-    print(sliceBox.tree$tree)
-  })
+  # output$debug <- renderPrint({
+  #   print(paste0("Button presses: ", v$counter))
+  #   print("FULL TREE")
+  #   print(sliceBox.tree$tree)
+  # })
 
   # Keep a total count of all the button presses (also used loosely as the number of tables created)
   v <- reactiveValues(counter = 1L) 
   
-  # Event handlers: specific function for particular button will run when that button is pressed
+  # Every time v$counter is increased, create new handler for the new button at id=v$counter
   observeEvent(v$counter, {
-    for (id in 1:v$counter) {
-      buttonID <- paste0("sliceBoxButton", id)
-      observeEvent(input[[buttonID]], {
-        v$counter <- v$counter + 1L
-        print(paste0("Pressed ", buttonID))
+    id <- v$counter
+    buttonID <- paste0("sliceBoxButton", id)
+    # Create new button handler
+    observeEvent(input[[buttonID]], {
+      v$counter <- v$counter + 1L
+      print(paste0("Pressed ", buttonID))
 
-        # Append new child to list of children
-        numChildren <- length(sliceBox.tree$tree[[id]]$children)
-        sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
+      # Append new child to list of children
+      numChildren <- length(sliceBox.tree$tree[[id]]$children)
+      sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
 
-        sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id)
-        print(paste0("Appending node to tree at index ", v$counter))
-        #print(node)
-        output$debug <- renderPrint({ 
-          print(paste0("Button presses: ", v$counter))
-          print("INNER TREE")
-          print(sliceBox.tree$tree)
-        })
-        print(sliceBox.tree$tree)
-      })
-    }
+      sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id)
+      print(paste0("Appending node to tree at index ", v$counter))
+      #print(node)
+      print(sliceBox.tree$tree)
+    })
   })
 
   # Construct list of buttons
