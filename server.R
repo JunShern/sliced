@@ -37,7 +37,7 @@ shinyServer(function(input, output, session) {
       where = 'beforeEnd',
       ui = tagList(
         tags$div(id=containerDivID, style='float:left',
-          tags$div(id=nodeDivID, style='float:left',
+          tags$div(id=nodeDivID, style='float:left; margin: 5px',
             actionButton(buttonID, paste0("I am ", buttonID, ", child of ", parentId), 
               icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")
           ),

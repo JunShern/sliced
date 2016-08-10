@@ -34,7 +34,7 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
     tabsetPanel(
       tabPanel("Explore",
         fluidRow(verbatimTextOutput('debug')),
-        fluidRow(uiOutput("allSliceBoxes"))
+        tags$div(uiOutput("allSliceBoxes"))
       ),
       tabPanel("Summary",
         verbatimTextOutput("structure"), 
@@ -46,19 +46,6 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
           column(3, numericInput("obs", "Number of observations to show:", 10))
         ),
         DT::dataTableOutput('contents') 
-      ),
-      tabPanel("Buttons", 
-        div(style='float:left',
-
-          div(id='node1_div', 
-            actionButton('b1', 'Button1')
-          ),
-          div(id='children1_div' 
-
-          ),
-          br('')
-        
-        )
       )
     )
     
