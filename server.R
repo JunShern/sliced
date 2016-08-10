@@ -7,16 +7,29 @@ shinyServer(function(input, output, session) {
 
   ### FUNCTIONS ###
 
-  newNode <- function(id, parentId) {
+  newNode <- function(id, parentId, parentData) {
     node <- list(
       parent = parentId, 
       children = list()
     )
-    createButton(id, parentId) # Create the UI for this node
+
+    tableID <- paste0("sliceBoxTable", id)
+    # Slice table
+    d.slice <- reactive({
+      #filteredData <- filterData(d.Preview(), NULL, NULL, NULL) # First table no need to filter
+      sliceData(d.Preview(), input[[paste0("sliceBoxSelect",id)]])
+    })
+    output[[tableID]] <- DT::renderDataTable({
+      DT::datatable(d.slice(), 
+        escape=FALSE, style = 'bootstrap', class = 'table-condensed table-bordered', 
+        options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
+    })
+
+    createSliceBox(id, parentId) # Create the UI for this node
     return(node)
   }
 
-  createButton <- function(id, parentId) {
+  createSliceBox <- function(id, parentId) {
     # Div names
     containerDivID <- paste0('container',id,'_div')
     nodeDivID <- paste0('node',id,'_div')
@@ -29,6 +42,8 @@ shinyServer(function(input, output, session) {
     }
 
     # Input names
+    selectID <- paste0("sliceBoxSelect", id)
+    tableID <- paste0("sliceBoxTable", id)
     buttonID <- paste0("sliceBoxButton", id)
 
     # Insert the UI element for the node under the parent's children_div
@@ -39,35 +54,42 @@ shinyServer(function(input, output, session) {
         tags$div(id=containerDivID, style='float:left',
           tags$div(id=nodeDivID, style='float:left; margin: 5px',
             actionButton(buttonID, paste0("I am ", buttonID, ", child of ", parentId), 
-              icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")
+              icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)"),
+            wellPanel(
+              selectInput(selectID, paste0("Table ", id, ". Slice by:"), c(''), multiple=FALSE),
+              DT::dataTableOutput(tableID)
+            )
           ),
           tags$div(id=childrenDivID, style='float:left') # Container for children, starts empty
         ),
         tags$br('')
       )
-      
+    )
 
+    # Observer for selectors
+    observe(
+      updateSelectInput(session, selectID, choices=names(d.Preview()) ) 
     )
   }
 
-  createSliceBox <- function(id, parentOutputData) {
-    selectID <- paste0("sliceBoxSelect", id)
-    tableID <- paste0("sliceBoxTable", id)
-    buttonID <- paste0("sliceBoxButton", id)
+  # createSliceBox <- function(id, parentOutputData) {
+  #   selectID <- paste0("sliceBoxSelect", id)
+  #   tableID <- paste0("sliceBoxTable", id)
+  #   buttonID <- paste0("sliceBoxButton", id)
 
-    uiObject <- absolutePanel(
-      top = 220, left = 20, #width = 300,
-      draggable = TRUE,
-      style = "opacity: 0.92",
-      absolutePanel(right=-60, actionButton(input[[buttonID]], "", icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")), 
-      wellPanel(
-        #htmlOutput("sliceSelect"), # Drop-down menu
-        selectInput(paste0("selectSlice",i), paste0("Table ", i, ". Slice by:"), names(d.Preview()), multiple=FALSE),
-        DT::dataTableOutput(paste0('sliceTable',i))
-      )
-    )
-    return(uiObject)
-  }
+  #   uiObject <- absolutePanel(
+  #     top = 220, left = 20, #width = 300,
+  #     draggable = TRUE,
+  #     style = "opacity: 0.92",
+  #     absolutePanel(right=-60, actionButton(input[[buttonID]], "", icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)")), 
+  #     wellPanel(
+  #       #htmlOutput("sliceSelect"), # Drop-down menu
+  #       selectInput(paste0("selectSlice",i), paste0("Table ", i, ". Slice by:"), names(d.Preview()), multiple=FALSE),
+  #       DT::dataTableOutput(paste0('sliceTable',i))
+  #     )
+  #   )
+  #   return(uiObject)
+  # }
 
   filterData <- function(parentData, parentSlice, selectedRows, parentField) {
     if (parentSlice == NULL) return(parentData)
@@ -125,7 +147,7 @@ shinyServer(function(input, output, session) {
   })
   
   ## EXPLORE
-  rootNode <- newNode(1, 0)
+  rootNode <- newNode(1, 0, d.Preview())
   #sliceBox.tree <- list(rootNode) # We'll store our nodes as a 1D list, so parent and child ID's are recorded as their indices in the list
   sliceBox.tree <- reactiveValues(tree=list(rootNode))
 
@@ -142,31 +164,31 @@ shinyServer(function(input, output, session) {
   observeEvent(v$counter, {
     id <- v$counter
     buttonID <- paste0("sliceBoxButton", id)
-    # Create new button handler
+    # Button handlers to create new sliceBoxes
     observeEvent(input[[buttonID]], {
       v$counter <- v$counter + 1L
-      #print(paste0("Pressed ", buttonID))
+
 
       # Append new child to list of children
       numChildren <- length(sliceBox.tree$tree[[id]]$children)
       sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
 
-      sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id)
-      #print(paste0("Appending node to tree at index ", v$counter))
-      #print(node)
-      #print(sliceBox.tree$tree)
+      sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id, d.slice())
     })
+
+    # for (id in 1:v$counter) {
+    #   selectID <- paste0('sliceBoxSelect',id)
+    #   updateSelectInput(session, selectID, choices=names(d.Preview()))
+    # }
   })
 
-  # renderUI needs a list of uiObjects, so we just extract the uiObjects from every node of the tree
-  #output$allSliceBoxes <- renderUI({})
 
-  # # Table contents
+  # Table contents
   # d.slice <- reactive({
   #   #filteredData <- filterData(d.Preview(), NULL, NULL, NULL) # First table no need to filter
-  #   sliceData(d.Preview(), input[[paste0("selectSlice",i)]])
+  #   sliceData(d.Preview(), input[[paste0("selectSlice",1)]])
   # })
-  # output[[paste0("sliceTable",i)]] <- DT::renderDataTable({
+  # output[[paste0("sliceTable",1)]] <- DT::renderDataTable({
   #   DT::datatable(d.slice(), 
   #     escape=FALSE, style = 'bootstrap', class = 'table-condensed table-bordered', 
   #     options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))

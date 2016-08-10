@@ -33,8 +33,8 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
   fluidRow(
     tabsetPanel(
       tabPanel("Explore",
-        fluidRow(verbatimTextOutput('debug')),
-        tags$div(uiOutput("allSliceBoxes"))
+        #fluidRow(verbatimTextOutput('debug')),
+        tags$div(uiOutput("allSliceBoxes"), style="padding:20px")
       ),
       tabPanel("Summary",
         verbatimTextOutput("structure"), 
