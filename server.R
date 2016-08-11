@@ -168,12 +168,21 @@ shinyServer(function(input, output, session) {
     observeEvent(input[[buttonID]], {
       v$counter <- v$counter + 1L
 
-
       # Append new child to list of children
       numChildren <- length(sliceBox.tree$tree[[id]]$children)
       sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
 
       sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id, d.slice())
+
+      # Figure out which rows are being selected
+      output$debug <- renderPrint({
+        tableID <- paste0("sliceBoxTable", id)
+        selectedRows <- input[[paste0(tableID,"_rows_selected")]]
+        output$debug <- renderPrint(selectedRows)
+        # Now deselect the rows
+        proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
+        proxy %>% selectRows(NULL)
+      })
     })
 
     # for (id in 1:v$counter) {
