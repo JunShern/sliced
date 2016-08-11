@@ -8,10 +8,6 @@ shinyServer(function(input, output, session) {
   ### FUNCTIONS ###
 
   newNode <- function(id, parentId, parentData) {
-    node <- list(
-      parent = parentId, 
-      children = list()
-    )
 
     tableID <- paste0("sliceBoxTable", id)
     # Slice table
@@ -19,13 +15,19 @@ shinyServer(function(input, output, session) {
       #filteredData <- filterData(d.Preview(), NULL, NULL, NULL) # First table no need to filter
       sliceData(d.Preview(), input[[paste0("sliceBoxSelect",id)]])
     })
+
     output[[tableID]] <- DT::renderDataTable({
       DT::datatable(d.slice(), 
         escape=FALSE, style = 'bootstrap', class = 'table-condensed table-bordered', 
         options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
     })
-
     createSliceBox(id, parentId) # Create the UI for this node
+
+    node <- list(
+      parent = parentId, 
+      children = list()
+      #dataslice = isolate(d.slice())
+    )
     return(node)
   }
 
@@ -110,26 +112,71 @@ shinyServer(function(input, output, session) {
 
 
   ### CODE STARTS HERE
-
   options(shiny.maxRequestSize=300*1024^2) # Allow for file uploads of up to 300MB
   tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")) # Import jQuery 
   tags$head(tags$script(src="https://use.fontawesome.com/15c2608d79.js")) # Import FontAwesome for icons
 
   # File upload
   d.Preview <- reactive({
+    print("We're here!")
     inFile <- input$file1
-    if (is.null(inFile))
+    if (is.null(inFile)) {
       return(NULL)
-    data <- read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
-    data
+    } else {
+      data <- read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
+      return(data)
+    }
   })
   
+  ## EXPLORE
+  rootNode <- newNode(1, 0, d.Preview())
+  # We'll store our nodes as a 1D list, so parent and child ID's are recorded as their indices in the list
+  sliceBox.tree <- reactiveValues(tree=list(rootNode))
+  # Keep a total count of all the button presses (also used loosely as the number of tables created)
+  v <- reactiveValues(counter = 1L) 
+
+  # Every time v$counter is increased, create new handler for the new button at id=v$counter
+  observeEvent(v$counter, {
+    print("Observed!")
+    id <- v$counter
+    buttonID <- paste0("sliceBoxButton", id)
+    # Button handlers to create new sliceBoxes
+    observeEvent(input[[buttonID]], {
+      v$counter <- v$counter + 1L
+
+      # Figure out which rows are being selected
+      tableID <- paste0("sliceBoxTable", id)
+      selectedRows <- input[[paste0(tableID,"_rows_selected")]]
+      output$debug <- renderPrint(selectedRows)
+
+      # Filter the data based on selection 
+
+      # Now deselect the rows
+      proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
+      proxy %>% selectRows(NULL)
+
+      # Append new child to list of children
+      numChildren <- length(sliceBox.tree$tree[[id]]$children)
+      sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
+
+      sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id, d.slice())
+
+    })
+  })
+
+
+  ## QUICK VIEW TAB
   # Add column names to dropdown selector
   output$selectUI <- renderUI({ 
     selectInput("column", "Select fields:", names(d.Preview()), multiple=TRUE)
   })
-  
-  ## QUICK VIEW 
+  # Table of uploaded file
+  output$contents <- DT::renderDataTable({
+    DT::datatable(d.Preview()[, input$column, drop = FALSE], 
+                  selection="none", escape=FALSE, 
+                  style = 'bootstrap', class = 'table-condensed table-bordered', 
+                  options = list(paging=TRUE, searching=FALSE, autoWidth=FALSE, info=FALSE))
+  })
   
   # Print overviews of the data
   output$structure <- renderPrint({
@@ -138,59 +185,6 @@ shinyServer(function(input, output, session) {
   output$summary <- renderPrint({
     summary(d.Preview())
   })
-  # Table of uploaded file
-  output$contents <- DT::renderDataTable({
-    DT::datatable(head(d.Preview(), input$obs)[, input$column, drop = FALSE], 
-                  selection="none", escape=FALSE, 
-                  style = 'bootstrap', class = 'table-condensed table-bordered', 
-                  options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
-  })
-  
-  ## EXPLORE
-  rootNode <- newNode(1, 0, d.Preview())
-  #sliceBox.tree <- list(rootNode) # We'll store our nodes as a 1D list, so parent and child ID's are recorded as their indices in the list
-  sliceBox.tree <- reactiveValues(tree=list(rootNode))
-
-  # output$debug <- renderPrint({
-  #   print(paste0("Button presses: ", v$counter))
-  #   print("FULL TREE")
-  #   print(sliceBox.tree$tree)
-  # })
-
-  # Keep a total count of all the button presses (also used loosely as the number of tables created)
-  v <- reactiveValues(counter = 1L) 
-  
-  # Every time v$counter is increased, create new handler for the new button at id=v$counter
-  observeEvent(v$counter, {
-    id <- v$counter
-    buttonID <- paste0("sliceBoxButton", id)
-    # Button handlers to create new sliceBoxes
-    observeEvent(input[[buttonID]], {
-      v$counter <- v$counter + 1L
-
-      # Append new child to list of children
-      numChildren <- length(sliceBox.tree$tree[[id]]$children)
-      sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
-
-      sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id, d.slice())
-
-      # Figure out which rows are being selected
-      output$debug <- renderPrint({
-        tableID <- paste0("sliceBoxTable", id)
-        selectedRows <- input[[paste0(tableID,"_rows_selected")]]
-        output$debug <- renderPrint(selectedRows)
-        # Now deselect the rows
-        proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
-        proxy %>% selectRows(NULL)
-      })
-    })
-
-    # for (id in 1:v$counter) {
-    #   selectID <- paste0('sliceBoxSelect',id)
-    #   updateSelectInput(session, selectID, choices=names(d.Preview()))
-    # }
-  })
-
 
   # Table contents
   # d.slice <- reactive({

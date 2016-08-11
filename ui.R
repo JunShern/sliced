@@ -30,22 +30,19 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
   ),
   
   # Main display body
-  fluidRow(
+  fluidRow(style="padding:5px",
     tabsetPanel(
       tabPanel("Explore",
-        fluidRow(verbatimTextOutput('debug')),
+        fluidRow(verbatimTextOutput('debug'), style="padding:10px 20px 0px 20px"),
         tags$div(uiOutput("allSliceBoxes"), style="padding:20px")
       ),
-      tabPanel("Summary",
+      tabPanel("Summary", style="padding:20px",
         verbatimTextOutput("structure"), 
         verbatimTextOutput("summary")
       ),
-      tabPanel("Quick View", 
-        fluidRow(
-          column(9, wellPanel(htmlOutput("selectUI")) ),
-          column(3, numericInput("obs", "Number of observations to show:", 10))
-        ),
-        DT::dataTableOutput('contents') 
+      tabPanel("Quick View", style="padding:20px",
+        fluidRow(style="padding:0px", column(12, wellPanel(htmlOutput("selectUI"))) ),
+        fluidRow(style="padding:10px", column(12, DT::dataTableOutput('contents')) )
       )
     )
     
