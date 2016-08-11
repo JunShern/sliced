@@ -8,26 +8,23 @@ shinyServer(function(input, output, session) {
   ### FUNCTIONS ###
 
   newNode <- function(id, parentId, parentData) {
-
-    tableID <- paste0("sliceBoxTable", id)
-    # Slice table
-    d.slice <- reactive({
-      #filteredData <- filterData(d.Preview(), NULL, NULL, NULL) # First table no need to filter
+    slice <- reactive({
       sliceData(d.Preview(), input[[paste0("sliceBoxSelect",id)]])
     })
 
-    output[[tableID]] <- DT::renderDataTable({
-      DT::datatable(d.slice(), 
-        escape=FALSE, style = 'bootstrap', class = 'table-condensed table-bordered', 
-        options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
-    })
-    createSliceBox(id, parentId) # Create the UI for this node
-
     node <- list(
       parent = parentId, 
-      children = list()
-      #dataslice = isolate(d.slice())
+      children = list(),
+      data.display = reactive(slice()),
+      data.selected = reactive({
+        selectedRows <- input[[paste0("sliceBoxTable", id, "_rows_selected")]]
+        #filterData(d.Preview(), slice(), selectedRows, input[[paste0("sliceBoxSelect",id)]]) 
+        input[[paste0("sliceBoxSelect",id)]]
+      })
     )
+
+    createSliceBox(id, parentId) # Create the UI for this node
+
     return(node)
   }
 
@@ -47,6 +44,13 @@ shinyServer(function(input, output, session) {
     selectID <- paste0("sliceBoxSelect", id)
     tableID <- paste0("sliceBoxTable", id)
     buttonID <- paste0("sliceBoxButton", id)
+
+    # Create table for display
+    output[[tableID]] <- DT::renderDataTable({
+      DT::datatable(sliceBox.tree$tree[[id]]$data.display(), 
+        escape=FALSE, style = 'bootstrap', class = 'table-condensed table-bordered', 
+        options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
+    })
 
     # Insert the UI element for the node under the parent's children_div
     insertUI(
@@ -155,12 +159,14 @@ shinyServer(function(input, output, session) {
       proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
       proxy %>% selectRows(NULL)
 
-      # Append new child to list of children
+      # Create new child
+      sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id, sliceBox.tree$tree[[id]]$data.selected())
+      output$debug <- renderPrint({
+        sliceBox.tree$tree[[id]]$data.selected()
+      })
+      # Append new child's id to list of children
       numChildren <- length(sliceBox.tree$tree[[id]]$children)
       sliceBox.tree$tree[[id]]$children[v$counter] <- v$counter 
-
-      sliceBox.tree$tree[[v$counter]] <- newNode(v$counter, id, d.slice())
-
     })
   })
 
