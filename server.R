@@ -58,7 +58,7 @@ shinyServer(function(input, output, session) {
         tags$div(id=containerDivID, style='float:left',
           tags$div(id=nodeDivID, style='float:left; margin: 5px',
             actionButton(buttonID, paste0("I am ", buttonID, ", child of ", parentId), 
-              icon("plus-circle fa-2x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)"),
+              icon("plus-circle fa-1x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)"),
             wellPanel(
               selectInput(selectID, paste0("Table ", id, ". Slice by:"), c(''), multiple=FALSE),
               DT::dataTableOutput(tableID)

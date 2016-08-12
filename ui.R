@@ -14,16 +14,26 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
     ),
     column(10,
       fluidRow(
-        column(4,
-          tags$h4("Upload CSV file"),
-          checkboxInput('header', 'Headers', TRUE),
-          fileInput('file1', '', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'))
-        ),
-        column(4,
-          radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'),',')  
-        ),
-        column(4,
-          radioButtons('quote', 'Quote', c(None='','Double Quote'='"','Single Quote'="'"),'"')
+        column(4,fileInput('file1', '', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'))),
+        column(8, actionButton('fileSettingsButton', '', icon("fa fa-cog fa-2x"), style='border:none; background-color:rgba(255,255,255,0)'),
+          # Settings panel is conditional on fileSettingsButton
+          conditionalPanel(condition = 'input.fileSettingsButton % 2 == 0',
+            absolutePanel(
+              top = 0, left = 0, width = 180,
+              draggable = TRUE,
+              #style = "background-color:rgba(255,255,255,0.9); color:black",
+              tags$div(class="panel panel-warning",
+                tags$div(class="panel-heading",
+                  tags$h4(class="panel-title", "CSV file settings")
+                ),
+                tags$div(class="panel-body",
+                  checkboxInput('header', 'Headers', TRUE),
+                  radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'),',') , 
+                  radioButtons('quote', 'Quote', c(None='','Double Quote'='"','Single Quote'="'"),'"')
+                )
+              )
+            )
+          )
         )
       )
     )
