@@ -119,7 +119,6 @@ shinyServer(function(input, output, session) {
 
   # File upload
   d.Preview <- reactive({
-    print("We're here!")
     inFile <- input$file1
     if (is.null(inFile)) {
       return(NULL)
@@ -159,7 +158,6 @@ shinyServer(function(input, output, session) {
 
   # Every time v$counter is increased, create new handler for the new button at id=v$counter
   observeEvent(v$counter, {
-    print("Observed!")
     parentId <- v$counter
     buttonID <- paste0("sliceBoxButton", parentId)
     # Button handlers to create new sliceBoxes
@@ -185,12 +183,16 @@ shinyServer(function(input, output, session) {
       #proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
       #proxy %>% selectRows(NULL)
 
-      # Create new child
+      # Create new chil
       sliceBox.tree$tree[[childId]] <- newNode(childId, parentId)
 
       # Append new childId to parent's list of children
       numChildren <- length(sliceBox.tree$tree[[parentId]]$children)
       sliceBox.tree$tree[[parentId]]$children[childId] <- childId 
+
+      selectID <- paste0("sliceBoxSelect", childId)
+      print(paste0("We are updating ", selectID, "!!"))
+      updateSelectInput(session, selectID, choices=c('Hello','World')) 
     })
   })
 
