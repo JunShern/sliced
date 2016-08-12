@@ -130,6 +130,7 @@ shinyServer(function(input, output, session) {
   })
 
   ## EXPLORE
+  #selectionFields <- reactive(names(d.Preview))
   # We'll store our nodes as a 1D list, so parent and child ID's are recorded as their indices in the list
   sliceBox.data <- reactiveValues(display=list(), selected=list())
   rootNode <- newNode(1, 0) # Page loads with NULL first node, before file is uploaded
@@ -139,14 +140,16 @@ shinyServer(function(input, output, session) {
     slice <- reactive({
       sliceData(d.Preview(), input$sliceBoxSelect1)
     })
+    # Creating data for the first node
     sliceBox.data$display[[1]] <- reactive(slice())
     sliceBox.data$selected[[1]] = reactive({
       selectedRows <- input[[paste0("sliceBoxTable", 1, "_rows_selected")]]
       filterData(d.Preview(), sliceBox.data$display[[1]](), selectedRows, input[[paste0("sliceBoxSelect",1)]]) 
     })
-    output$debug <- renderPrint({
-      print(sliceBox.data$selected[[1]]())
-    })
+
+    # output$debug <- renderPrint({
+    #   print(sliceBox.data$selected[[1]]())
+    # })
   })
 
   #output$debug <- renderPrint(sliceBox.tree$tree[[1]]$data.selected())
@@ -165,7 +168,10 @@ shinyServer(function(input, output, session) {
       childId <- v$counter 
       # Note that because the ObserveEvents are run separately on different triggers, (childId != parentId+1)
 
-      # Filter the data based on selection 
+      # Filter the data based on selection
+      # output$debug <- renderPrint({
+      #   print(sliceBox.data$selected[[parentId]]())
+      # }) 
       sliceBox.data$display[[childId]] = reactive({
         sliceData(sliceBox.data$selected[[parentId]](), input[[paste0("sliceBoxSelect",childId)]])
       })
@@ -176,8 +182,8 @@ shinyServer(function(input, output, session) {
 
       # Now deselect the rows
       tableID <- paste0("sliceBoxTable", parentId)
-      proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
-      proxy %>% selectRows(NULL)
+      #proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
+      #proxy %>% selectRows(NULL)
 
       # Create new child
       sliceBox.tree$tree[[childId]] <- newNode(childId, parentId)
