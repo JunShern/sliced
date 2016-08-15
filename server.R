@@ -115,29 +115,33 @@ shinyServer(function(input, output, session) {
   }
 
   killNode <- function(currentId) {
+    print(paste0("Beginning assasination of ", currentId))
     parentId <- sliceBox.tree$tree[[currentId]]$parent
+    # # Kill all its children
+    numChildren <- length(sliceBox.tree$tree[[currentId]]$children)
+    if (numChildren != 0) {
+      for (i in 1:numChildren) {
+        childId <- sliceBox.tree$tree[[currentId]]$children[[i]]
+        #sliceBox.tree$tree[[childId]] <- list()
+        killNode(childId) # Recursive assasination
+      }
+    }
+    print(paste0("Killed children of ", currentId))
+    # Tell its parents it's dead
+    # numChildren <- length(sliceBox.tree$tree[[parentId]]$children)
+    # for (i in 1:numChildren) {
+    #   if (sliceBox.tree$tree[[parentId]]$children[i] == currentId) {
+    #     sliceBox.tree$tree[[parentId]]$children[i] = NULL
+    #   }
+    # }
+    # print(paste0("Told ", currentId, "'s parents."))
+    # Kill the node
+    sliceBox.tree$tree[[currentId]] <- list() # Don't NULL the node because we need it to hold its index in the list
+    print(paste0("Killed ", currentId))
     # Kill the UI (this takes care of all children UIs as well)
     containerDivID <- paste0('container', currentId, '_div')
     removeUI(selector = paste0('#',containerDivID))
-    # # Kill all its children
-    # numChildren <- length(sliceBox.tree$tree[[currentId]]$children)
-    # if (numChildren != 0) {
-    #   for (i in 1:numChildren) {
-    #     childId <- sliceBox.tree$tree[[currentId]]$children[[i]]
-    #     print(childId)
-    #     sliceBox.tree$tree[[childId]] <- NULL
-    #     #killNode(childId) # Recursive assasination
-    #   }
-    # }
-    # Kill the node
-    #sliceBox.tree$tree[[currentId]] <- NULL
-    # Tell its parents it's dead
-    numChildren <- length(sliceBox.tree$tree[[parentId]]$children)
-    for (i in 1:numChildren) {
-      if (sliceBox.tree$tree[[parentId]]$children[1] == currentId) {
-        sliceBox.tree$tree[[parentId]]$children[1] = NULL
-      }
-    }
+    print(paste0("Killed UI of ", currentId))
   }
 
 
@@ -214,7 +218,7 @@ shinyServer(function(input, output, session) {
       #proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
       #proxy %>% selectRows(NULL)
 
-      # Create new chil
+      # Create new child
       sliceBox.tree$tree[[childId]] <- newNode(childId, parentId)
 
       # Append new childId to parent's list of children
