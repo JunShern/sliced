@@ -5,12 +5,12 @@ library(shinyjs)
 shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
   #tags$head(tags$script(HTML('Shiny.addCustomMessageHandler("jsCode", function(message) { eval(message.value); });'))),
   #tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")), # Import jQuery for the Draggable
+  tags$head(tags$link(href='https://fonts.googleapis.com/css?family=Yellowtail', rel='stylesheet', type='text/css')),
 
   # Header with controls
   fluidRow(
-    column(2, #align="center",
-      tags$h1("SLICED")
-      #img(src='sliced_bread.jpg', width=170)
+    column(2,
+      tags$h1("Sliced", id="mainTitle")
     ),
     column(10,
       fluidRow(
@@ -42,15 +42,15 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
   # Main display body
   fluidRow(style="padding:5px",
     tabsetPanel(
-      tabPanel("Explore",
+      tabPanel(icon("fa fa-pie-chart fa-2x"), #"Explore",
         fluidRow(verbatimTextOutput('debug'), style="padding:10px 20px 0px 20px"),
         tags$div(uiOutput("allSliceBoxes"), style="padding:20px")
       ),
-      tabPanel("Summary", style="padding:20px",
+      tabPanel(icon("fa fa-list-alt fa-2x"), style="padding:20px", #"Summary",
         verbatimTextOutput("structure"), 
         verbatimTextOutput("summary")
       ),
-      tabPanel("Quick View", style="padding:20px",
+      tabPanel(icon("fa fa-eye fa-2x"), style="padding:20px", #"Quick View",
         fluidRow(style="padding:0px", column(12, wellPanel(htmlOutput("selectUI"))) ),
         fluidRow(style="padding:10px", column(12, DT::dataTableOutput('contents')) )
       )

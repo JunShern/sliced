@@ -7044,3 +7044,8 @@ a.list-group-item-danger.active:focus {
 .panel-default > .panel-heading {
   background-color: #464545;
 }
+
+#mainTitle {
+  font-family: 'Yellowtail', cursive;
+  font-size: 72px;
+}
