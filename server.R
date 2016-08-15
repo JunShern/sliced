@@ -42,6 +42,7 @@ shinyServer(function(input, output, session) {
     selectID <- paste0("sliceBoxSelect", id)
     tableID <- paste0("sliceBoxTable", id)
     buttonID <- paste0("sliceBoxButton", id)
+    closeID <- paste0("sliceBoxClose", id)
 
     # Create table for display
     output[[tableID]] <- DT::renderDataTable({
@@ -59,7 +60,7 @@ shinyServer(function(input, output, session) {
           tags$div(id=nodeDivID, style='float:left; margin: 5px; min-width:250px',
             actionButton(buttonID, "", 
               icon("plus-circle fa-1x"), style="float:right; border:none; color:#00bc8c; background-color:rgba(0,0,0,0)"),
-            actionButton("closeButton", "", 
+            actionButton(closeID, "", 
               icon("fa fa-times"), style="float:right; border:none; color:#f39c12; background-color:rgba(0,0,0,0)"),
             wellPanel(class="well well-sm",
               selectInput(selectID, paste0("Table ", id, ", child of ", parentId, "."), c(''), multiple=FALSE),
@@ -117,6 +118,7 @@ shinyServer(function(input, output, session) {
   ### CODE STARTS HERE
   options(shiny.maxRequestSize=300*1024^2) # Allow for file uploads of up to 300MB
   tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")) # Import jQuery 
+  tags$head(tags$script(src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js")) # Import jQuqery UI (used for popup dialog)
   tags$head(tags$script(src="https://use.fontawesome.com/15c2608d79.js")) # Import FontAwesome for icons
 
   # File upload
@@ -161,6 +163,8 @@ shinyServer(function(input, output, session) {
   observeEvent(v$counter, {
     parentId <- v$counter
     buttonID <- paste0("sliceBoxButton", parentId)
+    closeID <- paste0("sliceBoxClose", parentId)
+
     # Button handlers to create new sliceBoxes
     observeEvent(input[[buttonID]], {
       v$counter <- v$counter + 1L
@@ -189,13 +193,21 @@ shinyServer(function(input, output, session) {
 
       # Append new childId to parent's list of children
       numChildren <- length(sliceBox.tree$tree[[parentId]]$children)
-      sliceBox.tree$tree[[parentId]]$children[childId] <- childId 
+      sliceBox.tree$tree[[parentId]]$children[numChildren+1] <- childId 
 
       selectID <- paste0("sliceBoxSelect", childId)
       print(paste0("We are updating ", selectID, "!!"))
       updateSelectInput(session, selectID, choices=c('Hello','World')) 
     })
+
+    # Event handler for close button
+    observeEvent(input[[closeID]], {
+      containerDivID <- paste0('container',parentId,'_div')
+      removeUI(selector = paste0('div:has(> #',containerDivID,')'))
+      sliceBox.tree$tree[[parentId]] <- NULL
+    })
   })
+  output$debug <- renderPrint(sliceBox.tree$tree)
 
 
   ## QUICK VIEW TAB
