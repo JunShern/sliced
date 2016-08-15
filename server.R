@@ -130,7 +130,7 @@ shinyServer(function(input, output, session) {
     #   }
     # }
     # Kill the node
-    sliceBox.tree$tree[[currentId]] <- NULL
+    #sliceBox.tree$tree[[currentId]] <- NULL
     # Tell its parents it's dead
     numChildren <- length(sliceBox.tree$tree[[parentId]]$children)
     for (i in 1:numChildren) {
