@@ -56,11 +56,13 @@ shinyServer(function(input, output, session) {
       where = 'afterBegin',
       ui = tagList(
         tags$div(id=containerDivID, style='float:left',
-          tags$div(id=nodeDivID, style='float:left; margin: 5px',
-            actionButton(buttonID, paste0("I am ", buttonID, ", child of ", parentId), 
-              icon("plus-circle fa-1x"), style="border:none; color:#00bc8c; background-color:rgb(60,60,60)"),
-            wellPanel(
-              selectInput(selectID, paste0("Table ", id, ". Slice by:"), c(''), multiple=FALSE),
+          tags$div(id=nodeDivID, style='float:left; margin: 5px; min-width:250px',
+            actionButton(buttonID, "", 
+              icon("plus-circle fa-1x"), style="float:right; border:none; color:#00bc8c; background-color:rgba(0,0,0,0)"),
+            actionButton("closeButton", "", 
+              icon("fa fa-times"), style="float:right; border:none; color:#f39c12; background-color:rgba(0,0,0,0)"),
+            wellPanel(class="well well-sm",
+              selectInput(selectID, paste0("Table ", id, ", child of ", parentId, "."), c(''), multiple=FALSE),
               DT::dataTableOutput(tableID)
             )
           ),
@@ -155,7 +157,6 @@ shinyServer(function(input, output, session) {
 
   # Keep a total count of all the button presses (also used loosely as the number of tables created)
   v <- reactiveValues(counter = 1L) 
-
   # Every time v$counter is increased, create new handler for the new button at id=v$counter
   observeEvent(v$counter, {
     parentId <- v$counter

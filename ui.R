@@ -14,13 +14,13 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
     ),
     column(10,
       fluidRow(
-        column(4,fileInput('file1', '', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'))),
+        column(4, fileInput('file1', '', accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'))),
         column(8, actionButton('fileSettingsButton', '', icon("fa fa-cog fa-2x"), style='border:none; background-color:rgba(255,255,255,0)'),
           # Settings panel is conditional on fileSettingsButton
-          conditionalPanel(condition = 'input.fileSettingsButton % 2 == 0',
+          conditionalPanel(condition = 'input.fileSettingsButton % 2 == 1',
             absolutePanel(
-              top = 0, left = 0, width = 180,
-              draggable = TRUE,
+              top = 5, left = 65, width = 180,
+              draggable = FALSE,
               #style = "background-color:rgba(255,255,255,0.9); color:black",
               tags$div(class="panel panel-warning",
                 tags$div(class="panel-heading",
