@@ -53,7 +53,7 @@ shinyServer(function(input, output, session) {
               icon("plus-circle fa-1x"), style="float:right; border:none; color:#00bc8c; background-color:rgba(0,0,0,0)"),
             actionButton(closeID, "", 
               icon("fa fa-times"), style="float:right; border:none; color:#f39c12; background-color:rgba(0,0,0,0)"),
-            wellPanel(class="well well-sm",
+            wellPanel(class="well well-sm", id=paste0('well',id),
               selectInput(selectID, paste0("Table ", id, ", child of ", parentId, "."), choices, multiple=FALSE),
               DT::dataTableOutput(tableID)
             )
@@ -134,12 +134,24 @@ shinyServer(function(input, output, session) {
     }
   })
 
+  # File upload input on navbar
+  insertUI(
+    selector = "ul", 
+    where = 'beforeEnd',
+    ui = div(id='fileInputDiv',
+      fileInput('file1', label=NULL, accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+      actionButton('fileSettingsButton', '', icon("fa fa-cog fa-2x"), style='border:none; background-color:rgba(255,255,255,0)')
+    )
+  )
+  removeUI(selector = "#file1_progress") # No need for file upload loading bar
+
   ## EXPLORE
-  #selectionFields <- reactive(names(d.Preview))
+
   # We'll store our nodes as a 1D list, so parent and child ID's are recorded as their indices in the list
   sliceBox.data <- reactiveValues(display=list(), selected=list())
   rootNode <- newNode(1, 0) # Page loads with NULL first node, before file is uploaded
   sliceBox.tree <- reactiveValues(tree=list(rootNode))
+
   # Special case for loading data into first node, needs reactive parentData - not the case for children nodes
   observeEvent(input$file1, {
     slice <- reactive({
@@ -151,10 +163,6 @@ shinyServer(function(input, output, session) {
       selectedRows <- input[[paste0("sliceBoxTable", 1, "_rows_selected")]]
       filterData(d.Preview(), sliceBox.data$display[[1]](), selectedRows, input[[paste0("sliceBoxSelect",1)]]) 
     })
-
-    # output$debug <- renderPrint({
-    #   print(sliceBox.data$selected[[1]]())
-    # })
   })
 
   #output$debug <- renderPrint(sliceBox.tree$tree[[1]]$data.selected())
@@ -174,9 +182,6 @@ shinyServer(function(input, output, session) {
       # Note that because the ObserveEvents are run separately on different triggers, (childId != parentId+1)
 
       # Filter the data based on selection
-      # output$debug <- renderPrint({
-      #   print(sliceBox.data$selected[[parentId]]())
-      # }) 
       sliceBox.data$display[[childId]] = reactive({
         sliceData(sliceBox.data$selected[[parentId]](), input[[paste0("sliceBoxSelect",childId)]])
       })
@@ -191,15 +196,11 @@ shinyServer(function(input, output, session) {
       #proxy %>% selectRows(NULL)
 
       # Create new child
-      sliceBox.tree$tree[[childId]] <- newNode(childId, parentId, choices=names(d.Preview()) )
+      sliceBox.tree$tree[[childId]] <- newNode(childId, parentId, choices=names(d.Preview()))
 
       # Append new childId to parent's list of children
       numChildren <- length(sliceBox.tree$tree[[parentId]]$children)
       sliceBox.tree$tree[[parentId]]$children[numChildren+1] <- childId 
-
-      selectID <- paste0("sliceBoxSelect", childId)
-      print(paste0("We are updating ", selectID, "!!"))
-      updateSelectInput(session, selectID, choices=c('Hello','World')) 
     })
 
     # Event handler for close button
@@ -230,15 +231,5 @@ shinyServer(function(input, output, session) {
     summary(d.Preview())
   })
 
-  # Table contents
-  # d.slice <- reactive({
-  #   #filteredData <- filterData(d.Preview(), NULL, NULL, NULL) # First table no need to filter
-  #   sliceData(d.Preview(), input[[paste0("selectSlice",1)]])
-  # })
-  # output[[paste0("sliceTable",1)]] <- DT::renderDataTable({
-  #   DT::datatable(d.slice(), 
-  #     escape=FALSE, style = 'bootstrap', class = 'table-condensed table-bordered', 
-  #     options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
-  # })
 })
 

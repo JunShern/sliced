@@ -7049,3 +7049,13 @@ a.list-group-item-danger.active:focus {
   font-family: 'Yellowtail', cursive;
   font-size: 72px;
 }
+
+#fileInputDiv > .shiny-input-container {
+  float: right;
+  margin: 0px 5px 0px 0px;
+}
+
+#fileSettingsButton {
+  float: right;
+  margin: 0px 5px 0px 0px;
+}
