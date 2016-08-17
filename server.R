@@ -3,8 +3,6 @@ library(DT)
 library(dplyr)
 library(lazyeval)
 
-roes <- list()
-
 shinyServer(function(input, output, session) {
 
   ### FUNCTIONS ###
@@ -162,9 +160,9 @@ shinyServer(function(input, output, session) {
     # Creating data for the first node
     sliceBox.data$display[[1]] <- reactive(slice())
     sliceBox.data$selected[[1]] = reactive({
-      #selectedRows <- input[[paste0("sliceBoxTable", 1, "_rows_selected")]]
-      #filterData(d.Preview(), sliceBox.data$display[[1]](), selectedRows, input[[paste0("sliceBoxSelect",1)]]) 
-      d.Preview() # First node no filter
+      selectedRows <- input[[paste0("sliceBoxTable", 1, "_rows_selected")]]
+      filterData(d.Preview(), sliceBox.data$display[[1]](), selectedRows, input[[paste0("sliceBoxSelect",1)]]) 
+      #d.Preview() # First node no filter
     })
   })
 
@@ -185,17 +183,12 @@ shinyServer(function(input, output, session) {
       # Note that because the ObserveEvents are run separately on different triggers, (childId != parentId+1)
 
       # Remember the rows being selected so that we don't lose this when re-rendering the data tables
-      #table$selectedRows[[parentId]] <<- reactive(input[[paste0("sliceBoxTable", childId, "_rows_selected")]])
-      #print(paste0("Selected rows of table ", parentId, ": ", table$selectedRows[[parentId]]() ))
-      output$debug <- renderPrint({
-        for (i in 2:v$counter) {
-          roes <- isolate(input[[paste0("sliceBoxTable", i, "_rows_selected")]])
-          print(roes)
-          tableID <- paste0("sliceBoxTable", parentId)
-          proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
-          proxy %>% selectRows(roes)
-        }
-      })
+      for (i in 1:v$counter) {
+        roes <- isolate(input[[paste0("sliceBoxTable", i, "_rows_selected")]]) # Isolate to save only a snapshot of the rowstate 
+        tableID <- paste0("sliceBoxTable", i)
+        proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
+        proxy %>% selectRows(roes) # Re-select these rows on next render
+      }
 
       # Filter the data based on selection
       sliceBox.data$display[[childId]] = reactive({
