@@ -54,7 +54,7 @@ shinyServer(function(input, output, session) {
             actionButton(closeID, "", 
               icon("fa fa-times"), style="float:right; border:none; color:#f39c12; background-color:rgba(0,0,0,0)"),
             wellPanel(class="well well-sm", id=paste0('well',id),
-              selectInput(selectID, paste0("Table ", id, ", child of ", parentId, "."), choices, multiple=FALSE),
+              selectInput(selectID, paste0("Table ", id, ", child of ", parentId, "."), c("-Select-",choices), multiple=FALSE),
               DT::dataTableOutput(tableID)
             )
           ),
@@ -66,7 +66,7 @@ shinyServer(function(input, output, session) {
 
     # Observer for selectors
     observe(
-      updateSelectInput(session, selectID, choices=names(d.Preview()) ) 
+      updateSelectInput(session, selectID, choices=c("-Select-",names(d.Preview())) ) 
     )
   }
 
@@ -160,15 +160,16 @@ shinyServer(function(input, output, session) {
     # Creating data for the first node
     sliceBox.data$display[[1]] <- reactive(slice())
     sliceBox.data$selected[[1]] = reactive({
-      selectedRows <- input[[paste0("sliceBoxTable", 1, "_rows_selected")]]
-      filterData(d.Preview(), sliceBox.data$display[[1]](), selectedRows, input[[paste0("sliceBoxSelect",1)]]) 
+      #selectedRows <- input[[paste0("sliceBoxTable", 1, "_rows_selected")]]
+      #filterData(d.Preview(), sliceBox.data$display[[1]](), selectedRows, input[[paste0("sliceBoxSelect",1)]]) 
+      d.Preview() # First node no filter
     })
   })
 
   #output$debug <- renderPrint(sliceBox.tree$tree[[1]]$data.selected())
-
   # Keep a total count of all the button presses (also used loosely as the number of tables created)
   v <- reactiveValues(counter = 1L) 
+  table <- reactiveValues(selectedRows = list())
   # Every time v$counter is increased, create new handler for the new button at id=v$counter
   observeEvent(v$counter, {
     parentId <- v$counter
@@ -186,14 +187,17 @@ shinyServer(function(input, output, session) {
         sliceData(sliceBox.data$selected[[parentId]](), input[[paste0("sliceBoxSelect",childId)]])
       })
       sliceBox.data$selected[[childId]] = reactive({
-        selectedRows <- input[[paste0("sliceBoxTable", childId, "_rows_selected")]]
-        filterData(sliceBox.data$selected[[parentId]](), sliceBox.data$display[[childId]](), selectedRows, input[[paste0("sliceBoxSelect",childId)]]) 
+        #selectedRows <- input[[paste0("sliceBoxTable", childId, "_rows_selected")]]
+        filterData(sliceBox.data$selected[[parentId]](), sliceBox.data$display[[childId]](), 
+          input[[paste0("sliceBoxTable", childId, "_rows_selected")]], input[[paste0("sliceBoxSelect",childId)]]) 
       })
 
-      # Now deselect the rows
-      tableID <- paste0("sliceBoxTable", parentId)
-      #proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
-      #proxy %>% selectRows(NULL)
+      # Remember the rows being selected so that we don't lose this when re-rendering the data tables
+      table$selectedRows[[parentId]] <<- reactive(input[[paste0("sliceBoxTable", childId, "_rows_selected")]])
+      print(paste0("Selected rows of table ", parentId, ": ", table$selectedRows[[parentId]]() ))
+      #tableID <- paste0("sliceBoxTable", parentId)
+      # proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
+      # proxy %>% selectRows(c(1,2))
 
       # Create new child
       sliceBox.tree$tree[[childId]] <- newNode(childId, parentId, choices=names(d.Preview()))
@@ -207,6 +211,12 @@ shinyServer(function(input, output, session) {
     observeEvent(input[[closeID]], {
       killNode(parentId)
     })
+  })
+  output$debug <- renderPrint({
+    # for (i in 2:v$counter) {
+    #   print(table$selectedRows[[i]]())
+    # }
+    print(table$selectedRows[[2]]())
   })
   #output$debug <- renderPrint(sliceBox.tree$tree)
 
