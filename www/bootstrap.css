@@ -7059,3 +7059,8 @@ a.list-group-item-danger.active:focus {
   float: right;
   margin: 0px 5px 0px 0px;
 }
+
+.fa-question {
+  width: 30px;
+  text-align: center;
+}

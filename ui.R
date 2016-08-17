@@ -8,12 +8,28 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
   tags$head(tags$link(href='https://fonts.googleapis.com/css?family=Yellowtail', rel='stylesheet', type='text/css')),
 
   # Header with controls
-  fluidRow(
-    tags$h1("Sliced", id="mainTitle", style='float:center')
-  ),
+  tags$h1("Sliced", id="mainTitle", style='float:center; text-align:center; margin:20px 0px 0px 0px'),
   
   # Main display body
   fluidRow(style="padding:5px",
+    # Settings panel is conditional on fileSettingsButton
+    conditionalPanel(condition = 'input.fileSettingsButton % 2 == 1',
+      absolutePanel(
+        top = 165, right = 10, width = 180,
+        draggable = FALSE,
+        #style = "background-color:rgba(255,255,255,0.9); color:black",
+        tags$div(class="panel panel-warning",
+          tags$div(class="panel-heading",
+            tags$h4(class="panel-title", "CSV file settings")
+          ),
+          tags$div(class="panel-body",
+            checkboxInput('header', 'Headers', TRUE),
+            radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'),',') , 
+            radioButtons('quote', 'Quote', c(None='','Double Quote'='"','Single Quote'="'"),'"')
+          )
+        )
+      )
+    ),
     tabsetPanel(
       tabPanel(icon("fa fa-pie-chart fa-2x"), #"Explore",
         fluidRow(verbatimTextOutput('debug'), style="padding:10px 20px 0px 20px"),
@@ -27,26 +43,9 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
         fluidRow(style="padding:0px", column(12, wellPanel(htmlOutput("selectUI"))) ),
         fluidRow(style="padding:10px", column(12, DT::dataTableOutput('contents')) )
       ),
-
-      # Settings panel is conditional on fileSettingsButton
-      conditionalPanel(condition = 'input.fileSettingsButton % 2 == 1',
-        absolutePanel(
-          top = 165, right = 10, width = 180,
-          draggable = FALSE,
-          #style = "background-color:rgba(255,255,255,0.9); color:black",
-          tags$div(class="panel panel-warning",
-            tags$div(class="panel-heading",
-              tags$h4(class="panel-title", "CSV file settings")
-            ),
-            tags$div(class="panel-body",
-              checkboxInput('header', 'Headers', TRUE),
-              radioButtons('sep', 'Separator', c(Comma=',', Semicolon=';', Tab='\t'),',') , 
-              radioButtons('quote', 'Quote', c(None='','Double Quote'='"','Single Quote'="'"),'"')
-            )
-          )
-        )
+      tabPanel(icon("fa fa-question fa-2x"), style="padding:20px", #"Help"
+        tags$div()
       )
-
     )
     
   )
