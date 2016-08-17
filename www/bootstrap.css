@@ -7065,3 +7065,9 @@ a > .fa { /* Nav tab icons */
   width: 30px;
   text-align: center;
 }
+
+/* Suppress error messages */
+.shiny-output-error, 
+.shiny-output-error:before {
+  visibility: hidden;
+}
