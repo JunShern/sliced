@@ -45,7 +45,7 @@ shinyServer(function(input, output, session) {
     # Insert the UI element for the node under the parent's children_div
     insertUI(
       selector = paste0('#',parentDivID), 
-      where = 'afterBegin',
+      where = 'beforeEnd',
       ui = tagList(
         tags$div(id=containerDivID, style='float:left',
           tags$div(id=nodeDivID, style='float:left; margin: 5px; min-width:250px',

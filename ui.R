@@ -1,5 +1,6 @@
 library(shiny)
 library(shinyjs)
+library(markdown)
 
 # Define UI for dataset viewer application
 shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
@@ -44,7 +45,16 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
         fluidRow(style="padding:10px", column(12, DT::dataTableOutput('contents')) )
       ),
       tabPanel(icon("fa fa-question fa-2x"), style="padding:20px", #"Help"
-        tags$div()
+        tags$div(
+          tags$div(style="margin:0 auto",
+            tags$img(style="float:left; margin:20px",
+              src='https://raw.githubusercontent.com/JunShern/sliced/master/www/demo.gif'
+            ),
+            tags$div(style="float:left; max-width:400px; margin:20px",
+              includeMarkdown("www/helpfile.md")
+            )
+          )
+        )
       )
     )
     
