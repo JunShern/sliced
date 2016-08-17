@@ -3,6 +3,8 @@ library(DT)
 library(dplyr)
 library(lazyeval)
 
+roes <- list()
+
 shinyServer(function(input, output, session) {
 
   ### FUNCTIONS ###
@@ -182,6 +184,19 @@ shinyServer(function(input, output, session) {
       childId <- v$counter 
       # Note that because the ObserveEvents are run separately on different triggers, (childId != parentId+1)
 
+      # Remember the rows being selected so that we don't lose this when re-rendering the data tables
+      #table$selectedRows[[parentId]] <<- reactive(input[[paste0("sliceBoxTable", childId, "_rows_selected")]])
+      #print(paste0("Selected rows of table ", parentId, ": ", table$selectedRows[[parentId]]() ))
+      output$debug <- renderPrint({
+        for (i in 2:v$counter) {
+          roes <- isolate(input[[paste0("sliceBoxTable", i, "_rows_selected")]])
+          print(roes)
+          tableID <- paste0("sliceBoxTable", parentId)
+          proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
+          proxy %>% selectRows(roes)
+        }
+      })
+
       # Filter the data based on selection
       sliceBox.data$display[[childId]] = reactive({
         sliceData(sliceBox.data$selected[[parentId]](), input[[paste0("sliceBoxSelect",childId)]])
@@ -192,12 +207,12 @@ shinyServer(function(input, output, session) {
           input[[paste0("sliceBoxTable", childId, "_rows_selected")]], input[[paste0("sliceBoxSelect",childId)]]) 
       })
 
-      # Remember the rows being selected so that we don't lose this when re-rendering the data tables
-      table$selectedRows[[parentId]] <<- reactive(input[[paste0("sliceBoxTable", childId, "_rows_selected")]])
-      print(paste0("Selected rows of table ", parentId, ": ", table$selectedRows[[parentId]]() ))
-      #tableID <- paste0("sliceBoxTable", parentId)
-      # proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
-      # proxy %>% selectRows(c(1,2))
+      # Re-select rows
+      # for (i in 2:v$counter) {
+      #   tableID <- paste0("sliceBoxTable", parentId)
+      #   proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
+      #   proxy %>% selectRows(c(1,2))
+      # }
 
       # Create new child
       sliceBox.tree$tree[[childId]] <- newNode(childId, parentId, choices=names(d.Preview()))
@@ -212,12 +227,12 @@ shinyServer(function(input, output, session) {
       killNode(parentId)
     })
   })
-  output$debug <- renderPrint({
-    # for (i in 2:v$counter) {
-    #   print(table$selectedRows[[i]]())
-    # }
-    print(table$selectedRows[[2]]())
-  })
+  # output$debug <- renderPrint({
+  #   # for (i in 2:v$counter) {
+  #   #   print(table$selectedRows[[i]]())
+  #   # }
+  #   print(table$selectedRows[[2]]())
+  # })
   #output$debug <- renderPrint(sliceBox.tree$tree)
 
   ## QUICK VIEW TAB
