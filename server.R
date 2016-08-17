@@ -183,12 +183,17 @@ shinyServer(function(input, output, session) {
       # Note that because the ObserveEvents are run separately on different triggers, (childId != parentId+1)
 
       # Remember the rows being selected so that we don't lose this when re-rendering the data tables
+      #output$debug <- renderPrint({
       for (i in 1:v$counter) {
+        # Save the current state of rows
         roes <- isolate(input[[paste0("sliceBoxTable", i, "_rows_selected")]]) # Isolate to save only a snapshot of the rowstate 
+        #print(roes)
+        # Re-select these rows on next render
         tableID <- paste0("sliceBoxTable", i)
         proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
-        proxy %>% selectRows(roes) # Re-select these rows on next render
+        proxy %>% selectRows(roes) 
       }
+      #})
 
       # Filter the data based on selection
       sliceBox.data$display[[childId]] = reactive({
@@ -199,13 +204,6 @@ shinyServer(function(input, output, session) {
         filterData(sliceBox.data$selected[[parentId]](), sliceBox.data$display[[childId]](), 
           input[[paste0("sliceBoxTable", childId, "_rows_selected")]], input[[paste0("sliceBoxSelect",childId)]]) 
       })
-
-      # Re-select rows
-      # for (i in 2:v$counter) {
-      #   tableID <- paste0("sliceBoxTable", parentId)
-      #   proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
-      #   proxy %>% selectRows(c(1,2))
-      # }
 
       # Create new child
       sliceBox.tree$tree[[childId]] <- newNode(childId, parentId, choices=names(d.Preview()))

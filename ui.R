@@ -32,7 +32,7 @@ shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
     ),
     tabsetPanel(
       tabPanel(icon("fa fa-pie-chart fa-2x"), #"Explore",
-        fluidRow(verbatimTextOutput('debug'), style="padding:10px 20px 0px 20px"),
+        #fluidRow(verbatimTextOutput('debug'), style="padding:10px 20px 0px 20px"),
         tags$div(uiOutput("allSliceBoxes"), style="padding:20px")
       ),
       tabPanel(icon("fa fa-list-alt fa-2x"), style="padding:20px", #"Summary",
