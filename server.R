@@ -186,12 +186,12 @@ shinyServer(function(input, output, session) {
       #output$debug <- renderPrint({
       for (i in 1:v$counter) {
         # Save the current state of rows
-        roes <- isolate(input[[paste0("sliceBoxTable", i, "_rows_selected")]]) # Isolate to save only a snapshot of the rowstate 
+        rowstate <- isolate(input[[paste0("sliceBoxTable", i, "_rows_selected")]]) # Isolate to save only a snapshot of the rowstate 
         #print(roes)
         # Re-select these rows on next render
         tableID <- paste0("sliceBoxTable", i)
         proxy <- dataTableProxy(tableID) # use proxy to manipulate an existing table without completely re-rendering it
-        proxy %>% selectRows(roes) 
+        proxy %>% selectRows(rowstate) 
       }
       #})
 
