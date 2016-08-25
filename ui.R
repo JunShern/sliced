@@ -5,12 +5,12 @@ library(markdown)
 # Define UI for dataset viewer application
 shinyUI(fluidPage(title = "SLICED", theme = "bootstrap.css", useShinyjs(),
   #tags$head(tags$script(HTML('Shiny.addCustomMessageHandler("jsCode", function(message) { eval(message.value); });'))),
-  #tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")), # Import jQuery for the Draggable
+  #tags$head(tags$script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js")), # Import jQuery 
   tags$head(tags$link(href='https://fonts.googleapis.com/css?family=Yellowtail', rel='stylesheet', type='text/css')),
-
+  
   # Header with controls
   tags$h1("Sliced", id="mainTitle", style='float:center; text-align:center; margin:20px 0px 0px 0px'),
-  
+
   # Main display body
   fluidRow(style="padding:5px",
     # Settings panel is conditional on fileSettingsButton

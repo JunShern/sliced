@@ -38,8 +38,18 @@ shinyServer(function(input, output, session) {
     # Create table for display
     output[[tableID]] <- DT::renderDataTable({
       DT::datatable(sliceBox.data$display[[id]](), 
-        escape=FALSE, style = 'bootstrap', class = 'table-condensed table-bordered', 
-        options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE))
+        escape=FALSE, style = 'bootstrap', class = 'table-condensed table-bordered', extensions = 'Buttons', 
+        options = list(paging=FALSE, searching=FALSE, autoWidth=FALSE, info=FALSE,
+          "dom" = 'Bfrtip', # Defines DOM layout for table
+          buttons = list('copy', 'csv', 'excel', 'pdf', 'print'),
+          initComplete = JS("function() { 
+            $('.dt-buttons > .btn').addClass('btn-xs');
+            $('.dt-buttons').removeClass('btn-group');
+            $('.dt-buttons').prepend('<i class=\"fa fa-floppy-o\"></i>').css('float','left');
+            $('.fa-floppy-o').css('margin', '10px').css('color', '#72e4ff');
+          }")
+        )
+      )
     })
 
     # Insert the UI element for the node under the parent's children_div
@@ -54,7 +64,7 @@ shinyServer(function(input, output, session) {
             actionButton(closeID, "", 
               icon("fa fa-times"), style="float:right; border:none; color:#f39c12; background-color:rgba(0,0,0,0)"),
             wellPanel(class="well well-sm", id=paste0('well',id),
-              selectInput(selectID, paste0("Table ", id, ", child of ", parentId, "."), c("-Select-",choices), multiple=FALSE),
+              selectInput(selectID, paste0(id, ", child of ", parentId, "."), c("-Select-",choices), multiple=FALSE),
               DT::dataTableOutput(tableID)
             )
           ),
@@ -175,6 +185,7 @@ shinyServer(function(input, output, session) {
     parentId <- v$counter
     buttonID <- paste0("sliceBoxButton", parentId)
     closeID <- paste0("sliceBoxClose", parentId)
+    saveID <- paste0("sliceBoxSave", parentId)
 
     # Button handlers to create new sliceBoxes
     observeEvent(input[[buttonID]], {
@@ -216,6 +227,17 @@ shinyServer(function(input, output, session) {
     # Event handler for close button
     observeEvent(input[[closeID]], {
       killNode(parentId)
+    })
+
+    observeEvent(input[[saveID]], {
+      # Copy data out of R
+      copy.table <- function(obj, size = 4096) {
+        clip <- paste('clipboard-', size, sep = '')
+        f <- file(description = clip, open = 'w')
+        write.table(obj, f, row.names = FALSE, sep = '\t')
+        close(f)  
+      }
+      copy.table(sliceBox.data$display[[parentId]]())
     })
   })
   # output$debug <- renderPrint({
